@@ -2,6 +2,23 @@ import elasticlunr from 'elasticlunr'
 import { NewAnswer, SavedAnswer } from './DataStoreTypes'
 import { Answer, FieldPath } from '@src/shared/utils/types'
 
+export function sectionBaseName(section: string): string {
+  return section.replace(/\s*\d+\s*$/, '').trim()
+}
+
+export function sectionNumber(section: string): number {
+  const match = section.match(/(\d+)\s*$/)
+  return match ? parseInt(match[1]) : 1
+}
+
+function sectionMatchesFlexibly(querySection: string, storedSection: string): boolean {
+  if (querySection === storedSection) return true
+  const queryBase = sectionBaseName(querySection)
+  const storedBase = sectionBaseName(storedSection)
+  if (queryBase !== storedBase) return false
+  return sectionNumber(querySection) === sectionNumber(storedSection)
+}
+
 export const convert106To1010 = (
   answer106: Answer
 ): NewAnswer | SavedAnswer => {
@@ -201,10 +218,17 @@ export class DataStore {
     const results = []
     this.pushResults(results, exactMatches)
     this.pushResults(results, tsMatches)
-    // filter matches
+    // filter matches - exact section first
     const filteredResults = results.filter((answer: SavedAnswer) => {
       return answer.fieldType === fieldType && answer.section === section
     })
-    return filteredResults.slice(0, limit)
+    if (filteredResults.length > 0) {
+      return filteredResults.slice(0, limit)
+    }
+    // fallback: flexible section matching (handles numbered sections)
+    const fuzzyResults = results.filter((answer: SavedAnswer) => {
+      return answer.fieldType === fieldType && sectionMatchesFlexibly(section, answer.section)
+    })
+    return fuzzyResults.slice(0, limit)
   }
 }

@@ -2,7 +2,7 @@ import { Server } from '@src/shared/utils/crossContextCommunication/server'
 import { FieldPath, Answer } from '@src/shared/utils/types'
 import { EVENT_LISTENER_ID, loadApp } from './app/App'
 import { answers1010, migrate1010 } from './utils/storage/Answers1010'
-import { convert106To1010, convert1010To106 } from './utils/storage/DataStore'
+import { convert106To1010, convert1010To106, sectionBaseName, sectionNumber } from './utils/storage/DataStore'
 import { SavedAnswer } from './utils/storage/DataStoreTypes'
 import { migrateEducation } from './utils/storage/migrateEducationSectionNames'
 
@@ -26,6 +26,19 @@ server.register('getAnswer', async (fieldPath: FieldPath) => {
 
 server.register('deleteAnswer', async (id: number) => {
   return answers1010.delete(id)
+})
+
+server.register('getSectionCounts', async () => {
+  const allAnswers = answers1010.getAll()
+  const sectionCounts: { [baseName: string]: number } = {}
+  allAnswers.forEach((answer) => {
+    const section = answer.section
+    if (!section) return
+    const baseName = sectionBaseName(section)
+    const num = sectionNumber(section)
+    sectionCounts[baseName] = Math.max(sectionCounts[baseName] || 0, num)
+  })
+  return sectionCounts
 })
 
 // inject script

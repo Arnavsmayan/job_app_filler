@@ -46,15 +46,9 @@ export const xpaths = {
   ].join(''),
   SEARCHABLE_SINGLE_DROPDOWN: [
     './/div',
-    '[',
-    "(@data-automation-id='formField-sourcePrompt') or ",
-    "(@data-automation-id='formField-source') or ",
-    "(@data-automation-id='formField-country-phone-code') or ",
-    "(@data-automation-id='formField-field-of-study') or ",
-    "(@data-automation-id='formField-certification') or ",
-    "(@data-automation-id='formField-schoolItem')",
-    ']',
+    "[starts-with(@data-automation-id, 'formField-')]",
     "[.//div[@data-automation-id='multiSelectContainer']]",
+    "[not(.//button[@aria-haspopup='listbox'])]",
   ].join(''),
   SINGLE_CHECKBOX: [
     './/div',

@@ -1,6 +1,7 @@
 import { RegisterInputs as workday } from './app/services/formFields/workday'
 import { RegisterInputs as greenhouse } from './app/services/formFields/greenhouse'
 import { RegisterInputs as greenhouseReact } from './app/services/formFields/greenhouseReact'
+import { expandRepeatingSections } from './app/services/formFields/workday/RepeatingSections'
 
 type InputSetup = (node: Node) => Promise<void>
 const inputRegistrars: [string, InputSetup][] = [
@@ -16,16 +17,37 @@ const getRegisterInput = (domain: string): InputSetup => {
   })[1]
 }
 
+const isWorkday = (domain: string): boolean => {
+  return domain.includes('myworkdayjobs.com') || domain.includes('myworkdaysite.com')
+}
+
 const run = async () => {
-  const RegisterInputs = getRegisterInput(window.location.host)
+  const domain = window.location.host
+  const RegisterInputs = getRegisterInput(domain)
+  let lastPage = ''
+
   const observer = new MutationObserver(async (_) => {
     RegisterInputs(document)
+
+    if (isWorkday(domain)) {
+      const currentPage = document.querySelector('h2')?.innerText || ''
+      if (currentPage && currentPage !== lastPage) {
+        lastPage = currentPage
+        setTimeout(() => expandRepeatingSections(), 500)
+      }
+    }
   })
   observer.observe(document.body, {
     childList: true,
     subtree: true,
   })
+
   RegisterInputs(document)
+
+  if (isWorkday(domain)) {
+    lastPage = document.querySelector('h2')?.innerText || ''
+    await expandRepeatingSections()
+  }
 }
 
 /**

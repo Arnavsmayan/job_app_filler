@@ -159,19 +159,34 @@ export class DropdownSearchable extends WorkdayBaseInput<
           await sleep(500)
           while (answerList.length > 0) {
             const answer = answerList.shift()
-            // search for answer
+            // search for answer via Tab
             getReactProps(this.inputElement).onKeyDown({
               key: 'Tab',
               target: { value: answer },
             })
             // break if the selected item matches our answer
-            const el = await waitForElement(
+            let el = await waitForElement(
               this.element,
               this.selectedItemElementXpath,
               { timeout: 500 }
             )
             if (el && this.isFilled(el.innerText, answerValues)) {
               break
+            }
+            // fallback: try Enter key
+            if (!el) {
+              getReactProps(this.inputElement).onKeyDown({
+                key: 'Enter',
+                target: { value: answer },
+              })
+              el = await waitForElement(
+                this.element,
+                this.selectedItemElementXpath,
+                { timeout: 500 }
+              )
+              if (el && this.isFilled(el.innerText, answerValues)) {
+                break
+              }
             }
             // if there are multiple matches, click the first one.
             const dropdownElement = await this.dropdownElement()
@@ -182,8 +197,6 @@ export class DropdownSearchable extends WorkdayBaseInput<
                 ".//div[@data-automation-id='promptOption']"
               )
             if (firstChoice) {
-              console.log('firstChoice');
-              
               firstChoice.click()
               break
             }
