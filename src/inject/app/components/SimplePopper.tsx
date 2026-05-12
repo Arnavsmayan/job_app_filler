@@ -12,7 +12,7 @@ export const SimplePopper: FC<{
   return (
     <>
       {message && (
-        <Popper id={id} open={true} anchorEl={anchorRef.current} placement={placement}>
+        <Popper id={id} open={true} anchorEl={anchorRef.current} placement={placement} disablePortal>
           <StyledPopperDiv>{message}</StyledPopperDiv>
         </Popper>
       )}

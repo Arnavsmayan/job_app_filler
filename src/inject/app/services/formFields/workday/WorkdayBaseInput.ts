@@ -1,6 +1,9 @@
 import { createRoot } from 'react-dom/client'
 import { getElement } from '@src/shared/utils/getElements'
 import { BaseFormInput } from '../baseFormInput'
+import { createShadowContainer } from '../../../utils/createShadowContainer'
+import { App } from '../../../App'
+import React from 'react'
 
 export abstract class WorkdayBaseInput<
   AnswerType
@@ -10,11 +13,13 @@ export abstract class WorkdayBaseInput<
     app: React.ReactNode,
     inputContainer: HTMLElement
   ) {
-    // cant just append the react app to the root element...
-    // it makes the element disappear
     const rootElement = document.createElement('div')
+    rootElement.classList.add('jaf-widget')
     inputContainer.insertBefore(rootElement, inputContainer.lastChild)
-    createRoot(rootElement).render(app)
+    const { appMount, emotionCache } = createShadowContainer(rootElement)
+    createRoot(appMount).render(
+      <App backend={this} emotionCache={emotionCache} portalContainer={appMount} />
+    )
   }
 
 

@@ -39,7 +39,7 @@ export interface AppContextType {
   setEditableAnswer: Dispatch<SetStateAction<LocalAnswer[]>>
   editableAnswerState: EditableAnswerState
   moreInfoPopper: PopperState
-
+  portalContainer: HTMLElement | undefined
   fieldNotice: string | null
 }
 
@@ -50,7 +50,8 @@ export const useAppContext = () => useContext(AppContext)
 export const ContextProvider: FC<{
   children: ReactNode
   backend: BaseFormInput<any>
-}> = ({ children, backend }) => {
+  portalContainer?: HTMLElement
+}> = ({ children, backend, portalContainer }) => {
   const [currentValue, setCurrentValue] = useState<any>(null)
   const [fillButtonDisabled, setFillButtonDisabled] = useState<boolean>(false)
   const [editableAnswer, setEditableAnswer] = useState<LocalAnswer[]>([])
@@ -114,6 +115,7 @@ export const ContextProvider: FC<{
     moreInfoPopper,
     editableAnswerState,
     fieldNotice,
+    portalContainer,
     fillButton: {
       isDisabled: fillButtonDisabled,
       onClick: handleFill,

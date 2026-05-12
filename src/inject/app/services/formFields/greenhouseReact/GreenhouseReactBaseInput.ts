@@ -1,6 +1,9 @@
 import { createRoot } from 'react-dom/client'
 import { BaseFormInput } from '../baseFormInput'
 import { getElement } from '@src/shared/utils/getElements'
+import { createShadowContainer } from '../../../utils/createShadowContainer'
+import { App } from '../../../App'
+import React from 'react'
 
 export abstract class GreenhouseReactBaseInput<
   AnswerType
@@ -24,6 +27,9 @@ export abstract class GreenhouseReactBaseInput<
     const rootElement = document.createElement('div')
     rootElement.classList.add('jaf-widget')
     this.labelDisplayElement.insertAdjacentElement('afterend', rootElement)
-    createRoot(rootElement).render(app)
+    const { appMount, emotionCache } = createShadowContainer(rootElement)
+    createRoot(appMount).render(
+      <App backend={this} emotionCache={emotionCache} portalContainer={appMount} />
+    )
   }
 }

@@ -1,11 +1,9 @@
 import React, { FC } from 'react'
 import { getElement, getElements } from '@src/shared/utils/getElements'
-import '@fontsource/roboto'
 import { v4 as uuid4 } from 'uuid'
 import { Answer, FieldPath } from '@src/shared/utils/types'
 import { AnswerValueSingleString } from '../../MoreInfoPopup/AnswerDisplay/AnswerValueDisplay/AnswerValueSingleString'
 import stringMatch from '@src/shared/utils/stringMatch'
-import { App } from '../../App'
 import { SaveButtonClickHndler, saveButtonClickHandlers } from '../../hooks/saveButtonClickHandlers'
 import { EditableAnswer, useEditableAnswerState } from '../../hooks/useEditableAnswerState'
 import { contentScriptAPI } from '../contentScriptApi'
@@ -85,7 +83,7 @@ export abstract class BaseFormInput<AnswerType> {
     /** prevents the element from being registered twice */
     this.element.setAttribute('job-app-filler', this.uuid)
     this.listenForChanges()
-    this.attachReactApp(<App backend={this} />, element)
+    this.attachReactApp(null, element)
   }
 
   static async autoDiscover(node: Node = document) {

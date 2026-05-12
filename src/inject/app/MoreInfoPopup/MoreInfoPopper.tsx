@@ -16,6 +16,7 @@ export const MoreInfoPopper: FC = () => {
       anchorEl={anchorEl}
       placement="right-end"
       transition
+      disablePortal
       sx={{ zIndex: 100 }}
     >
       {({ TransitionProps }) => (
