@@ -1,6 +1,9 @@
 import { createRoot } from 'react-dom/client'
 import { BaseFormInput, isRegistered, isVisible } from '../baseFormInput'
 import { getElement, getElements } from '@src/shared/utils/getElements'
+import { createShadowContainer } from '../../../utils/createShadowContainer'
+import { App } from '../../../App'
+import React from 'react'
 
 export abstract class GreenhouseBaseInput<
   AnswerType
@@ -37,9 +40,6 @@ export abstract class GreenhouseBaseInput<
   get section(): string {
     return this.sectionElement()?.getAttribute('jaf-section') || ""
   }
-  /**
-   * Attach widget between label and field
-   */
   attachReactApp(app: React.ReactNode, inputContainer: HTMLElement) {
     const rootElement = document.createElement('div')
     rootElement.classList.add("jaf-widget")
@@ -48,7 +48,10 @@ export abstract class GreenhouseBaseInput<
         rootElement,
         this.inputDisplayElement()
       )
-      createRoot(rootElement).render(app)
+      const { appMount, emotionCache } = createShadowContainer(rootElement)
+      createRoot(appMount).render(
+        <App backend={this} emotionCache={emotionCache} portalContainer={appMount} />
+      )
     }
   }
 }

@@ -1,5 +1,6 @@
 import React, { FC } from 'react'
-import { createRoot } from 'react-dom/client'
+import { EmotionCache } from '@emotion/cache'
+import { CacheProvider } from '@emotion/react'
 
 import { Box, Grid, ThemeProvider } from '@mui/material'
 import { theme } from '@src/shared/utils/react'
@@ -11,38 +12,35 @@ import Logo from '@src/shared/components/Logo'
 
 const Main: FC = () => {
   return (
-    <ThemeProvider theme={theme}>
-      <Box my={'4px'}>
-        <Grid container spacing={1} alignItems="center">
-          <Grid item>
-            <Logo />
-          </Grid>
-          <Grid item>
-            <FieldWidgetButtons />
-          </Grid>
+    <Box my={'4px'}>
+      <Grid container spacing={1} alignItems="center">
+        <Grid item>
+          <Logo />
         </Grid>
-      </Box>
-    </ThemeProvider>
+        <Grid item>
+          <FieldWidgetButtons />
+        </Grid>
+      </Grid>
+    </Box>
   )
 }
 
 export const App: React.FC<{
   backend: BaseFormInput<any>
-}> = ({ backend }) => {
-  return (
-    <ContextProvider backend={backend}>
-      <Main />
-    </ContextProvider>
+  emotionCache?: EmotionCache
+  portalContainer?: HTMLElement
+}> = ({ backend, emotionCache, portalContainer }) => {
+  const content = (
+    <ThemeProvider theme={theme}>
+      <ContextProvider backend={backend} portalContainer={portalContainer}>
+        <Main />
+      </ContextProvider>
+    </ThemeProvider>
   )
-}
 
-export const attachReactApp = (
-  app: React.ReactNode,
-  inputContainer: HTMLElement
-) => {
-  // cant just append the react app to the root element...
-  // it makes the element disappear
-  const rootElement = document.createElement('div')
-  inputContainer.insertBefore(rootElement, inputContainer.lastChild)
-  createRoot(rootElement).render(app)
+  if (emotionCache) {
+    return <CacheProvider value={emotionCache}>{content}</CacheProvider>
+  }
+
+  return content
 }

@@ -10,7 +10,7 @@ export const FillButton: FC = () => {
   } = useAppContext()
 
   return (
-    <Tooltip title="Autofill" placement="top" arrow>
+    <Tooltip title="Autofill" placement="top" arrow PopperProps={{ disablePortal: true }}>
       <span>
         <ButtonSuccessBadge show={isFilled}>
           <Button onClick={onClick} disabled={isDisabled}>

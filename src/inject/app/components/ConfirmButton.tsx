@@ -1,5 +1,6 @@
 import React, { MouseEvent, ReactElement, ReactNode, useState } from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton } from "@mui/material";
+import { useAppContext } from "../AppContext";
 
 export const ConfirmButton: React.FC<{
   action: () => void | Promise<void>
@@ -8,6 +9,7 @@ export const ConfirmButton: React.FC<{
   dialogTitle: string
   buttonContent: ReactNode
 }> = ({action, children, dialogTitle, component = "Button", buttonContent}) => {
+  const { portalContainer } = useAppContext()
   const [open, setOpen] = useState<boolean>(false)
   const handleClickOpen = () => {
     setOpen(true);
@@ -24,7 +26,7 @@ export const ConfirmButton: React.FC<{
   }
   return (
     <>
-    {component === "Button" 
+    {component === "Button"
     ? <Button onClick={handleClickOpen}>
       {buttonContent}
     </Button>
@@ -32,7 +34,7 @@ export const ConfirmButton: React.FC<{
       {buttonContent}
       </IconButton>
     }
-    <Dialog open={open} onClose={handleClose}>
+    <Dialog open={open} onClose={handleClose} container={portalContainer} disablePortal>
       <DialogTitle>
         {dialogTitle}
       </DialogTitle>

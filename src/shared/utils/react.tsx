@@ -22,6 +22,7 @@ export const theme = createTheme(baseTheme, {
     MuiAvatar: { styleOverrides },
   },
   typography: {
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     allVariants: {
       color: teal[800],
     },

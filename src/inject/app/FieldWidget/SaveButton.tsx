@@ -10,7 +10,7 @@ export const SaveButton: FC = () => {
   } = useAppContext()
   return (
     <ButtonSuccessBadge show={showSuccessBadge}>
-      <Tooltip title="Save current value as answer." placement="top" arrow>
+      <Tooltip title="Save current value as answer." placement="top" arrow PopperProps={{ disablePortal: true }}>
         <Button onClick={() => clickHandler()}>
           <SaveIcon />
         </Button>
