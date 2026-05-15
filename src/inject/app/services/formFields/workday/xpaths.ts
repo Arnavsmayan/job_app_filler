@@ -54,6 +54,8 @@ export const xpaths = {
     './/div',
     "[starts-with(@data-automation-id, 'formField-')]",
     "[count(.//input[@type='checkbox']) = 1]",
+    "[not(.//input[@type='password'])]",
+    "[not(..//*[starts-with(@data-automation-id, 'formField-')][.//input[@type='password']])]",
   ].join(''),
   MONTH_YEAR: [
     './/div',
