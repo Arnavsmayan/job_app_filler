@@ -38,5 +38,8 @@
   "permissions": [
     "storage",
     "unlimitedStorage"
+  ],
+  "host_permissions": [
+    "https://api.openai.com/*"
   ]
 }

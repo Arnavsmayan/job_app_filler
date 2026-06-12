@@ -70,8 +70,11 @@ export type Profile = {
 }
 
 /**
- * Default profile. Empty values so the user knows what to fill in.
- * Rules cover the common visa/work-authorization questions.
+ * Default profile. Pre-populated for an Indian F-1 visa holder whose only
+ * U.S. work experience is at Eli Lilly. Edit fields/experience/education
+ * via the Profile tab in the popup; rules are pre-tuned to never volunteer
+ * race/ethnicity unless asked, decline veteran/disability self-id, and
+ * answer the common visa questions consistently.
  */
 export const DEFAULT_PROFILE: Profile = {
   fields: {
@@ -91,8 +94,8 @@ export const DEFAULT_PROFILE: Profile = {
   experience: [
     {
       jobTitle: '',
-      company: '',
-      location: '',
+      company: 'Eli Lilly and Company',
+      location: 'Indianapolis, IN',
       startMonth: '',
       startYear: '',
       endMonth: '',

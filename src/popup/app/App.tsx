@@ -20,6 +20,7 @@ import { theme } from '@src/shared/utils/react'
 import { ContentCopyIcon, GitHubIcon, OpenInNewIcon } from '@src/shared/utils/icons'
 import { LogoTitleBar } from '@src/shared/components/LogoTitleBar'
 import { ProfileEditor } from './ProfileEditor'
+import { AiSettingsEditor } from './AiSettingsEditor'
 
 const EMAIL_ADDRESS = 'berellevy+chromeextensions@gmail.com'
 
@@ -48,6 +49,7 @@ export const App: FC<{}> = () => {
           >
             <Tab label="Home" />
             <Tab label="Profile" />
+            <Tab label="AI" />
           </Tabs>
           {tab === 0 && (
             <Box>
@@ -138,6 +140,7 @@ export const App: FC<{}> = () => {
             </Box>
           )}
           {tab === 1 && <ProfileEditor />}
+          {tab === 2 && <AiSettingsEditor />}
         </Container>
         <Snackbar
           open={snackbarOpen}

@@ -63,14 +63,19 @@ export const usePopperState = ({init, backend}: Pick<AppContextType, "init" | "b
   }
 
   const handleClickAway = (e: PointerEvent) => {
-    const { x, y } = e
-    const rects = [,
-      popperRef.current?.getBoundingClientRect(),
-    ]
-    const isInModal = () => e.composedPath().some((el: HTMLElement) => {
-      return el?.classList?.contains("MuiModal-root")
-    })
-    const isInside = isInRect(x, y, rects) || backend.clickIsInFormfield(e) || isInModal()
+    const path = e.composedPath() as HTMLElement[]
+    const popperEl = popperRef.current as HTMLElement | null
+    const anchorElCurrent = anchorRef.current as HTMLElement | null
+    const isInsideWidget = path.some(
+      (el) =>
+        el === popperEl ||
+        el === anchorElCurrent ||
+        (popperEl && el?.contains?.(popperEl) === false && popperEl.contains?.(el))
+    )
+    const isInModal = path.some((el: HTMLElement) =>
+      el?.classList?.contains('MuiModal-root')
+    )
+    const isInside = isInsideWidget || backend.clickIsInFormfield(e) || isInModal
     if (!isInside) {
       document.removeEventListener('click', handleClickAway)
       close()

@@ -4,9 +4,19 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const webpack = require('webpack')
 const uuid = require('uuid')
+const { loadConfig } = require('./scripts/loadConfig')
+
+const userConfig = loadConfig()
 
 const envKeys = {
   'process.env.CONTENT_SCRIPT_URL': `"${uuid.v4()}"`,
+  'process.env.AI_DEFAULT_API_KEY': JSON.stringify(userConfig.OPENAI_API_KEY || ''),
+  'process.env.AI_DEFAULT_MODEL': JSON.stringify(userConfig.OPENAI_MODEL || 'gpt-5.4-mini'),
+  'process.env.AI_DAILY_TOKEN_BUDGET': JSON.stringify(
+    Number(userConfig.DAILY_TOKEN_BUDGET) || 2_500_000
+  ),
+  'process.env.AI_DEFAULT_ENABLED': JSON.stringify(Boolean(userConfig.AI_ENABLED)),
+  'process.env.AUTO_ADVANCE': JSON.stringify(Boolean(userConfig.AUTO_ADVANCE)),
 }
 
 module.exports = {

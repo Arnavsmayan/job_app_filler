@@ -4,16 +4,20 @@ import { useAppContext } from '../AppContext'
 import { FillButton } from './FillButton'
 import { SaveButton } from './SaveButton'
 import { MoreInfoButton } from './MoreInfoButton'
+import { MoreInfoPopper } from '../MoreInfoPopup/MoreInfoPopper'
 
 export const FieldWidgetButtons: FC = () => {
   const { moreInfoPopper } = useAppContext()
   return (
-    <Paper elevation={4}>
-      <ButtonGroup ref={moreInfoPopper.anchorRef} size="small">
-        <FillButton />
-        <SaveButton />
-        <MoreInfoButton />
-      </ButtonGroup>
-    </Paper>
+    <>
+      <Paper elevation={4}>
+        <ButtonGroup ref={moreInfoPopper.anchorRef} size="small">
+          <FillButton />
+          <SaveButton />
+          <MoreInfoButton />
+        </ButtonGroup>
+      </Paper>
+      <MoreInfoPopper />
+    </>
   )
 }

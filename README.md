@@ -11,14 +11,49 @@ npm start
 
 Load the `dist/` folder as an unpacked extension at `chrome://extensions/`.
 
+## API key (required for AI fallback)
+
+Open `config.py` and paste your OpenAI key into `OPENAI_API_KEY`. Then
+`npm run build` and reload the extension. The key is read at build time and
+baked into the bundle (it never leaves your machine except on actual
+OpenAI API calls).
+
+> ⚠️ **Do not commit your real key.** The committed `config.py` ships with
+> an empty key by design. After you paste yours locally, run
+> `git update-index --skip-worktree config.py` to keep the change out of
+> diffs, or revert it before each commit.
+
 ## Updating
 
-After pulling changes, rebuild and hit "Reload" on the extensions page. Saved answers persist as long as you reload (not remove + re-add) the extension from the same directory.
+After pulling changes, rebuild and hit "Reload" on the extensions page.
+Saved answers and your profile persist as long as you reload (not remove +
+re-add) the extension from the same directory.
 
 ## Supported Sites
 
 - Workday
 - Greenhouse (boards.greenhouse.io, job-boards.greenhouse.io, boards.eu.greenhouse.io)
+
+## Fill priority
+
+For every field, the extension tries answers in this order:
+
+1. **Saved answers** — anything you clicked Save on previously.
+2. **Profile rules** — keyword-matched answers from the **Profile** tab.
+3. **AI fallback** — `gpt-5.4-mini` via your OpenAI key (Profile is sent as
+   context). Each field's answer is cached locally so repeat visits cost no
+   tokens.
+
+The AI never overrides a saved answer or a matching profile rule.
+
+## Auto-advance
+
+When `AUTO_ADVANCE = True` in `config.py` (default), after all required
+fields on a Workday page are filled the extension auto-clicks
+**Save and Continue / Next**, advances to the next page, and repeats until
+it reaches a page with a **Submit** / **Submit Application** /
+**Confirm** button — at which point it stops so you click the final
+Submit yourself.
 
 ## Profile (Pre-defined Answers)
 

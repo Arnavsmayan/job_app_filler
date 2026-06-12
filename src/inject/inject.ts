@@ -2,6 +2,10 @@ import { RegisterInputs as workday } from './app/services/formFields/workday'
 import { RegisterInputs as greenhouse } from './app/services/formFields/greenhouse'
 import { RegisterInputs as greenhouseReact } from './app/services/formFields/greenhouseReact'
 import { expandRepeatingSections } from './app/services/formFields/workday/RepeatingSections'
+import { tryAutoAdvance } from './app/services/formFields/workday/AutoAdvance'
+
+declare const process: { env: { [key: string]: any } }
+const AUTO_ADVANCE_ENABLED: boolean = process.env.AUTO_ADVANCE === true
 
 type InputSetup = (node: Node) => Promise<void>
 const inputRegistrars: [string, InputSetup][] = [
@@ -34,6 +38,11 @@ const run = async () => {
       if (currentPage && currentPage !== lastPage) {
         lastPage = currentPage
         setTimeout(() => expandRepeatingSections(), 500)
+      }
+      if (AUTO_ADVANCE_ENABLED) {
+        // Debounced via internal advancing flag + last-clicked-header guard.
+        // Wait a moment for autofill to settle before evaluating.
+        setTimeout(() => tryAutoAdvance(), 2500)
       }
     }
   })
