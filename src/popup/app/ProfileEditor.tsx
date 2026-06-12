@@ -25,6 +25,31 @@ const DEFAULT_PROFILE_TEMPLATE = {
     website: '',
     github: '',
   },
+  experience: [
+    {
+      jobTitle: '',
+      company: '',
+      location: '',
+      startMonth: '',
+      startYear: '',
+      endMonth: '',
+      endYear: '',
+      currentlyWorking: false,
+      description: '',
+    },
+  ],
+  education: [
+    {
+      school: '',
+      degree: '',
+      fieldOfStudy: '',
+      startMonth: '',
+      startYear: '',
+      endMonth: '',
+      endYear: '',
+      gpa: '',
+    },
+  ],
   rules: [
     {
       label: 'Authorized to work WITHOUT sponsorship (F1 holder => No)',
@@ -224,9 +249,12 @@ export const ProfileEditor: FC = () => {
         Reload the job page after saving for changes to take effect.
       </Typography>
       <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>
-        Each rule's <code>keywords</code> are matched (case-insensitive,
-        substring) against the question label. The first matching rule's{' '}
-        <code>answer</code> is used.
+        <strong>experience</strong> / <strong>education</strong> arrays drive
+        multi-position Work Experience / Education sections (Workday). Add as
+        many entries as you need — the extension will auto-add and fill those
+        sections on page load. <strong>rules</strong> are matched
+        (case-insensitive substring) against the question label; the first
+        matching rule's <code>answer</code> is used.
       </Typography>
       <TextField
         multiline

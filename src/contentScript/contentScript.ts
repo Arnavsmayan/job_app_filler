@@ -58,6 +58,12 @@ server.register('getSectionCounts', async () => {
     const num = sectionNumber(section)
     sectionCounts[baseName] = Math.max(sectionCounts[baseName] || 0, num)
   })
+  // Merge with profile-defined section counts so multi-position
+  // experience / education entries get added even without saved answers.
+  const profileCounts = profileStore.sectionCounts()
+  for (const [baseName, count] of Object.entries(profileCounts)) {
+    sectionCounts[baseName] = Math.max(sectionCounts[baseName] || 0, count)
+  }
   return sectionCounts
 })
 

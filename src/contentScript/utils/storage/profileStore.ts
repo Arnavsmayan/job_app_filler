@@ -6,10 +6,16 @@
  * field is encountered for which no saved answer exists, the field name is
  * matched against the keywords in each rule. Matching rules contribute
  * fallback answers that the autofill flow uses.
+ *
+ * Also supports multi-position repeating sections (Work Experience 1..N,
+ * Education 1..N) so the extension can fill out experience/education
+ * sections automatically — like Simplify, but driven by the local profile
+ * and the existing field backends (so it's fast).
  */
 
 import { FieldPath } from '@src/shared/utils/types'
 import { SavedAnswer } from './DataStoreTypes'
+import { sectionBaseName, sectionNumber } from './DataStore'
 
 const PROFILE_STORAGE_KEY = 'profileAnswers_v1'
 
@@ -30,10 +36,37 @@ export type ProfileRule = {
   label?: string
 }
 
+export type ExperienceEntry = {
+  jobTitle?: string
+  company?: string
+  location?: string
+  startMonth?: string // "01".."12" or "1".."12"
+  startYear?: string // "2024"
+  endMonth?: string
+  endYear?: string
+  currentlyWorking?: boolean
+  description?: string
+}
+
+export type EducationEntry = {
+  school?: string
+  degree?: string
+  fieldOfStudy?: string
+  startMonth?: string
+  startYear?: string
+  endMonth?: string
+  endYear?: string
+  gpa?: string
+}
+
 export type Profile = {
   rules: ProfileRule[]
   /** quick-fill personal info commonly requested across forms */
   fields?: { [key: string]: any }
+  /** ordered list of work experience entries (most recent first) */
+  experience?: ExperienceEntry[]
+  /** ordered list of education entries (most recent first) */
+  education?: EducationEntry[]
 }
 
 /**
@@ -55,6 +88,31 @@ export const DEFAULT_PROFILE: Profile = {
     website: '',
     github: '',
   },
+  experience: [
+    {
+      jobTitle: '',
+      company: '',
+      location: '',
+      startMonth: '',
+      startYear: '',
+      endMonth: '',
+      endYear: '',
+      currentlyWorking: false,
+      description: '',
+    },
+  ],
+  education: [
+    {
+      school: '',
+      degree: '',
+      fieldOfStudy: '',
+      startMonth: '',
+      startYear: '',
+      endMonth: '',
+      endYear: '',
+      gpa: '',
+    },
+  ],
   rules: [
     {
       label: 'Authorized to work WITHOUT sponsorship (F1 holder => No)',
@@ -222,6 +280,84 @@ export const DEFAULT_PROFILE: Profile = {
   ],
 }
 
+/** field-name keywords -> entry property name (experience) */
+const EXPERIENCE_FIELD_MAP: { [prop: string]: string[] } = {
+  jobTitle: ['job title', 'title', 'position', 'role title'],
+  company: ['company', 'employer', 'organization', 'organisation'],
+  location: ['location', 'work location', 'city'],
+  startDate: ['from'],
+  endDate: ['to'],
+  currentlyWorking: ['currently work', 'current job', 'i currently', 'present role'],
+  description: ['description', 'responsibilities', 'role description', 'summary', 'duties'],
+}
+
+/** field-name keywords -> entry property name (education) */
+const EDUCATION_FIELD_MAP: { [prop: string]: string[] } = {
+  school: ['school', 'university', 'institution', 'college'],
+  degree: ['degree'],
+  fieldOfStudy: ['field of study', 'major', 'area of study', 'concentration'],
+  startDate: ['from'],
+  endDate: ['to'],
+  gpa: ['gpa', 'overall result', 'grade point'],
+}
+
+const SECTION_BASE_EXPERIENCE = ['work experience', 'experience', 'employment', 'work history']
+const SECTION_BASE_EDUCATION = ['education', 'academic']
+
+function matchesSectionBase(sectionBase: string, candidates: string[]): boolean {
+  const lower = sectionBase.toLowerCase()
+  return candidates.some((c) => lower === c || lower.includes(c))
+}
+
+function findEntryFieldKey(
+  fieldName: string,
+  map: { [key: string]: string[] }
+): string | null {
+  const lower = (fieldName || '').toLowerCase()
+  for (const [key, keywords] of Object.entries(map)) {
+    if (keywords.some((kw) => lower.includes(kw.toLowerCase()))) {
+      return key
+    }
+  }
+  return null
+}
+
+/**
+ * Format a value into the shape the field-type's fill code expects.
+ * - MonthYear  -> [month, year]
+ * - SingleCheckbox / BooleanCheckbox -> boolean
+ * - Dropdown / DropdownSearchable / SimpleDropdown -> [value] (string in array)
+ * - everything else (TextInput, TextArea, etc.) -> raw value
+ */
+function formatAnswer(value: any, fieldType: string): any {
+  if (value === undefined || value === null || value === '') return undefined
+  if (fieldType === 'MonthYear') {
+    if (Array.isArray(value)) return value
+    return undefined
+  }
+  if (fieldType === 'Year') {
+    if (Array.isArray(value)) return value[1] ?? value[0]
+    return value
+  }
+  if (fieldType === 'SingleCheckbox') {
+    return Boolean(value)
+  }
+  if (fieldType === 'SimpleDropdown' || fieldType === 'Dropdown') {
+    return Array.isArray(value) ? value : [String(value)]
+  }
+  return value
+}
+
+function getDateTuple(
+  entry: any,
+  which: 'start' | 'end'
+): [string, string] | undefined {
+  const month = entry[which + 'Month']
+  const year = entry[which + 'Year']
+  if (!month && !year) return undefined
+  return [String(month || ''), String(year || '')]
+}
+
 class ProfileStore {
   private profile: Profile = DEFAULT_PROFILE
   private loaded = false
@@ -229,12 +365,9 @@ class ProfileStore {
   async load(): Promise<void> {
     const result = await chrome.storage.local.get(PROFILE_STORAGE_KEY)
     if (result[PROFILE_STORAGE_KEY]) {
-      // merge with default so new default rules added in updates are picked up
-      // unless the user has explicitly customized the profile.
       this.profile = result[PROFILE_STORAGE_KEY] as Profile
     } else {
       this.profile = DEFAULT_PROFILE
-      // persist default so the user has something to edit on first run
       await chrome.storage.local.set({ [PROFILE_STORAGE_KEY]: this.profile })
     }
     this.loaded = true
@@ -242,8 +375,6 @@ class ProfileStore {
 
   get(): Profile {
     if (!this.loaded) {
-      // Synchronous getters are needed in places where load() has been
-      // awaited at startup. Returning DEFAULT_PROFILE is a safe fallback.
       return DEFAULT_PROFILE
     }
     return this.profile
@@ -259,6 +390,25 @@ class ProfileStore {
     return DEFAULT_PROFILE
   }
 
+  /** counts of profile-defined repeating-section base names */
+  sectionCounts(): { [baseName: string]: number } {
+    const profile = this.get()
+    const counts: { [baseName: string]: number } = {}
+    if (profile.experience && profile.experience.length > 0) {
+      const validCount = profile.experience.filter((e) => isExperienceFilled(e)).length
+      if (validCount > 0) {
+        counts['Work Experience'] = validCount
+      }
+    }
+    if (profile.education && profile.education.length > 0) {
+      const validCount = profile.education.filter((e) => isEducationFilled(e)).length
+      if (validCount > 0) {
+        counts['Education'] = validCount
+      }
+    }
+    return counts
+  }
+
   /**
    * Look up profile-based fallback answers for a field.
    *
@@ -271,6 +421,62 @@ class ProfileStore {
     const fieldNameLower = fieldPath.fieldName.toLowerCase()
     const matches: SavedAnswer[] = []
     let pseudoId = -1000 // negative ids so they cannot collide with saved answers
+
+    // 1) section-aware experience / education matches first (most specific).
+    if (fieldPath.section) {
+      const base = sectionBaseName(fieldPath.section)
+      const num = sectionNumber(fieldPath.section)
+
+      if (matchesSectionBase(base, SECTION_BASE_EXPERIENCE)) {
+        const entry = profile.experience?.[num - 1]
+        if (entry) {
+          const key = findEntryFieldKey(fieldPath.fieldName, EXPERIENCE_FIELD_MAP)
+          if (key) {
+            let value: any
+            if (key === 'startDate') value = getDateTuple(entry, 'start')
+            else if (key === 'endDate') value = getDateTuple(entry, 'end')
+            else value = (entry as any)[key]
+            const formatted = formatAnswer(value, fieldPath.fieldType)
+            if (formatted !== undefined) {
+              matches.push({
+                id: pseudoId--,
+                page: fieldPath.page,
+                section: fieldPath.section,
+                fieldType: fieldPath.fieldType,
+                fieldName: fieldPath.fieldName,
+                answer: formatted,
+                matchType: 'profile-experience',
+              })
+            }
+          }
+        }
+      } else if (matchesSectionBase(base, SECTION_BASE_EDUCATION)) {
+        const entry = profile.education?.[num - 1]
+        if (entry) {
+          const key = findEntryFieldKey(fieldPath.fieldName, EDUCATION_FIELD_MAP)
+          if (key) {
+            let value: any
+            if (key === 'startDate') value = getDateTuple(entry, 'start')
+            else if (key === 'endDate') value = getDateTuple(entry, 'end')
+            else value = (entry as any)[key]
+            const formatted = formatAnswer(value, fieldPath.fieldType)
+            if (formatted !== undefined) {
+              matches.push({
+                id: pseudoId--,
+                page: fieldPath.page,
+                section: fieldPath.section,
+                fieldType: fieldPath.fieldType,
+                fieldName: fieldPath.fieldName,
+                answer: formatted,
+                matchType: 'profile-education',
+              })
+            }
+          }
+        }
+      }
+    }
+
+    // 2) keyword rules (general-purpose).
     for (const rule of profile.rules || []) {
       if (!rule || rule.answer === undefined || rule.answer === null || rule.answer === '') {
         continue
@@ -295,6 +501,14 @@ class ProfileStore {
     }
     return matches
   }
+}
+
+function isExperienceFilled(e: ExperienceEntry): boolean {
+  return Boolean(e && (e.jobTitle || e.company))
+}
+
+function isEducationFilled(e: EducationEntry): boolean {
+  return Boolean(e && (e.school || e.degree || e.fieldOfStudy))
 }
 
 export const profileStore = new ProfileStore()

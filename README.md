@@ -24,18 +24,57 @@ After pulling changes, rebuild and hit "Reload" on the extensions page. Saved an
 
 Click the extension icon and open the **Profile** tab to pre-define answers
 for common questions (visa status, work authorization, sponsorship, EEO/EEOC
-demographic questions, etc.). The profile is a JSON document with two parts:
+demographic questions, etc.). The profile is a JSON document with four parts:
 
 - `fields` — quick-fill personal info (name, email, phone, address, etc.).
-- `rules` — a list of `{ keywords, answer, fieldType? }` entries. Each rule's
-  `keywords` are matched (case-insensitive substring) against the question
-  label on the form. The first matching rule's `answer` is used.
+- `experience` — ordered list of work experience entries. Drives multi-position
+  **Work Experience 1..N** sections in Workday. Most-recent first.
+- `education` — ordered list of education entries. Drives multi-position
+  **Education 1..N** sections in Workday.
+- `rules` — list of `{ keywords, answer, fieldType? }` entries for general
+  questions. Each rule's `keywords` are matched (case-insensitive substring)
+  against the question label on the form. The first matching rule's `answer`
+  is used.
 
 When the page loads, any field whose label matches a profile rule is filled
-in automatically — no need to click the Fill button. Saved answers (from
-manually filling a field once) always take priority over profile rules.
+in automatically — no need to click the Fill button. Multi-position sections
+are auto-expanded (the extension clicks the "Add" button until the section
+count matches the profile) and each entry is filled from the corresponding
+array index. Saved answers (from manually filling a field once) always take
+priority over profile rules.
 
-Example rule:
+### Experience entry shape
+
+```json
+{
+  "jobTitle": "Software Engineer Intern",
+  "company": "Acme Corp",
+  "location": "New York, NY",
+  "startMonth": "06",
+  "startYear": "2024",
+  "endMonth": "08",
+  "endYear": "2024",
+  "currentlyWorking": false,
+  "description": "Built X, shipped Y."
+}
+```
+
+### Education entry shape
+
+```json
+{
+  "school": "State University",
+  "degree": "Bachelor of Science",
+  "fieldOfStudy": "Computer Science",
+  "startMonth": "08",
+  "startYear": "2021",
+  "endMonth": "05",
+  "endYear": "2025",
+  "gpa": "3.8"
+}
+```
+
+### Rule example
 
 ```json
 {
