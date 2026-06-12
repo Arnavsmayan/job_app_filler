@@ -50,12 +50,24 @@ export const DEFAULT_PROFILE: Profile = {
     city: '',
     state: '',
     zip: '',
-    country: '',
+    country: 'India',
     linkedin: '',
     website: '',
     github: '',
   },
   rules: [
+    {
+      label: 'Authorized to work WITHOUT sponsorship (F1 holder => No)',
+      keywords: [
+        'without sponsorship',
+        'without requiring sponsorship',
+        'without need for sponsorship',
+        'without the need for sponsorship',
+        'authorized to work in the united states without',
+        'authorized to work without',
+      ],
+      answer: 'No',
+    },
     {
       label: 'Are you legally authorized to work?',
       keywords: [
@@ -92,6 +104,34 @@ export const DEFAULT_PROFILE: Profile = {
       answer: 'Yes',
     },
     {
+      label: 'Current visa / immigration status',
+      keywords: [
+        'visa status',
+        'current visa',
+        'immigration status',
+        'current immigration',
+        'work visa',
+        'visa type',
+      ],
+      answer: 'F-1 Student Visa (OPT/CPT eligible)',
+    },
+    {
+      label: 'Citizenship / nationality',
+      keywords: [
+        'citizenship',
+        'country of citizenship',
+        'nationality',
+        'are you a citizen',
+        'citizen of which country',
+      ],
+      answer: 'India',
+    },
+    {
+      label: 'Are you a US citizen?',
+      keywords: ['us citizen', 'u.s. citizen', 'united states citizen', 'american citizen'],
+      answer: 'No',
+    },
+    {
       label: 'Are you 18 or older?',
       keywords: ['18 years', '18 or older', 'at least 18'],
       answer: 'Yes',
@@ -112,6 +152,47 @@ export const DEFAULT_PROFILE: Profile = {
         'previously employed by',
       ],
       answer: 'No',
+    },
+    {
+      label: 'Connections / known employees at company',
+      keywords: [
+        'know anyone',
+        'know any current',
+        'know any employee',
+        'connections at',
+        'do you have any connections',
+        'referred by',
+        'referred you',
+        'employee referral',
+      ],
+      answer: 'No',
+    },
+    {
+      label: 'Notice period / availability to start',
+      keywords: [
+        'notice period',
+        'how soon can you start',
+        'available to start',
+        'earliest start date',
+        'when can you start',
+        'availability to start',
+      ],
+      answer: 'Immediate',
+    },
+    {
+      label: 'Willing to relocate?',
+      keywords: ['willing to relocate', 'open to relocating', 'open to relocation', 'relocate'],
+      answer: 'Yes',
+    },
+    {
+      label: 'Willing to travel?',
+      keywords: ['willing to travel', 'open to travel', 'travel for work', 'comfortable with travel'],
+      answer: 'Yes',
+    },
+    {
+      label: 'Preferred pronouns',
+      keywords: ['pronouns', 'preferred pronouns', 'what are your pronouns'],
+      answer: 'He/Him',
     },
     {
       label: 'How did you hear about us?',
