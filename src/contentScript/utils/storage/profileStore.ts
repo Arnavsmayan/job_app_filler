@@ -80,7 +80,7 @@ export const DEFAULT_PROFILE: Profile = {
         'require employer sponsorship',
         'sponsorship for employment visa',
       ],
-      answer: 'No',
+      answer: 'Yes',
     },
     {
       label: 'Will you now or in the future require sponsorship?',
@@ -89,7 +89,7 @@ export const DEFAULT_PROFILE: Profile = {
         'in the future require sponsorship',
         'future require sponsorship',
       ],
-      answer: 'No',
+      answer: 'Yes',
     },
     {
       label: 'Are you 18 or older?',
@@ -102,19 +102,26 @@ export const DEFAULT_PROFILE: Profile = {
       answer: 'No',
     },
     {
-      label: 'Visa status',
-      keywords: ['visa status', 'current visa', 'immigration status'],
-      answer: '',
+      label: 'Previously worked here / current employee',
+      keywords: [
+        'previously worked',
+        'previous employee',
+        'former employee',
+        'current employee',
+        'currently employed by',
+        'previously employed by',
+      ],
+      answer: 'No',
     },
     {
       label: 'How did you hear about us?',
       keywords: ['how did you hear', 'how did you find', 'referral source', 'where did you hear'],
-      answer: 'LinkedIn',
+      answer: 'Other',
     },
     {
       label: 'Gender',
       keywords: ['gender', 'what is your gender'],
-      answer: 'Decline to self-identify',
+      answer: 'Male',
     },
     {
       label: 'Race / Ethnicity',
@@ -129,7 +136,7 @@ export const DEFAULT_PROFILE: Profile = {
     {
       label: 'Disability status',
       keywords: ['disability status', 'have a disability', 'disabled'],
-      answer: 'I do not want to answer',
+      answer: 'No, I do not have a disability',
     },
   ],
 }

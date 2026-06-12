@@ -45,12 +45,12 @@ const DEFAULT_PROFILE_TEMPLATE = {
         'visa sponsorship',
         'sponsorship for employment visa',
       ],
-      answer: 'No',
+      answer: 'Yes',
     },
     {
       label: 'Will you now or in the future require sponsorship?',
       keywords: ['now or in the future', 'in the future require sponsorship'],
-      answer: 'No',
+      answer: 'Yes',
     },
     {
       label: 'Are you 18 or older?',
@@ -63,14 +63,26 @@ const DEFAULT_PROFILE_TEMPLATE = {
       answer: 'No',
     },
     {
+      label: 'Previously worked here / current employee',
+      keywords: [
+        'previously worked',
+        'previous employee',
+        'former employee',
+        'current employee',
+        'currently employed by',
+        'previously employed by',
+      ],
+      answer: 'No',
+    },
+    {
       label: 'How did you hear about us?',
       keywords: ['how did you hear', 'how did you find', 'referral source'],
-      answer: 'LinkedIn',
+      answer: 'Other',
     },
     {
       label: 'Gender',
       keywords: ['gender'],
-      answer: 'Decline to self-identify',
+      answer: 'Male',
     },
     {
       label: 'Race / Ethnicity',
@@ -85,7 +97,7 @@ const DEFAULT_PROFILE_TEMPLATE = {
     {
       label: 'Disability status',
       keywords: ['disability status', 'have a disability'],
-      answer: 'I do not want to answer',
+      answer: 'No, I do not have a disability',
     },
   ],
 }
