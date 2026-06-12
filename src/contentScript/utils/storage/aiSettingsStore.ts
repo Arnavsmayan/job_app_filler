@@ -52,8 +52,20 @@ function todayString(): string {
 class AiSettingsStore {
   private settings: AiSettings = DEFAULT_AI_SETTINGS
   private loaded = false
+  private loadPromise: Promise<void> | null = null
 
   async load(): Promise<void> {
+    if (this.loaded) return
+    if (this.loadPromise) return this.loadPromise
+    this.loadPromise = this._load()
+    try {
+      await this.loadPromise
+    } finally {
+      this.loadPromise = null
+    }
+  }
+
+  private async _load(): Promise<void> {
     const result = await chrome.storage.local.get(AI_SETTINGS_KEY)
     const stored = (result[AI_SETTINGS_KEY] || {}) as Partial<AiSettings>
     // Build-time defaults always supply a fallback when a stored value is missing

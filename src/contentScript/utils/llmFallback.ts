@@ -164,14 +164,8 @@ async function callOpenAI(
     const json = await res.json()
     const content = json?.choices?.[0]?.message?.content
     if (!content) return null
-    let parsed: any
-    try {
-      parsed = JSON.parse(content)
-    } catch {
-      return null
-    }
-    const value = parsed?.value
-    if (typeof value !== 'string') return null
+    const value = extractValue(content)
+    if (value === null) return null
     const usage = {
       input: json?.usage?.prompt_tokens || ESTIMATED_PROMPT_TOKENS,
       output: json?.usage?.completion_tokens || ESTIMATED_RESPONSE_TOKENS,
@@ -192,6 +186,34 @@ async function safeText(res: Response): Promise<string> {
   } catch {
     return ''
   }
+}
+
+/** Best-effort: pull a string `value` out of the LLM content. */
+function extractValue(content: string): string | null {
+  // 1) Strict JSON first.
+  try {
+    const parsed = JSON.parse(content)
+    if (parsed && typeof parsed.value === 'string') return parsed.value
+    if (typeof parsed === 'string') return parsed
+  } catch {
+    // fall through
+  }
+  // 2) Substring JSON (e.g. content wrapped in ```json fences).
+  const objMatch = content.match(/\{[^{}]*"value"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"[^{}]*\}/)
+  if (objMatch) {
+    try {
+      return JSON.parse('"' + objMatch[1] + '"')
+    } catch {
+      return objMatch[1]
+    }
+  }
+  // 3) Plain text — strip code fences and trim.
+  const stripped = content
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim()
+  if (!stripped) return null
+  return stripped
 }
 
 /**

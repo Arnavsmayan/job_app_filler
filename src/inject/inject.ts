@@ -29,6 +29,18 @@ const run = async () => {
   const domain = window.location.host
   const RegisterInputs = getRegisterInput(domain)
   let lastPage = ''
+  let advanceTimer: ReturnType<typeof setTimeout> | null = null
+
+  const scheduleAutoAdvance = () => {
+    if (!AUTO_ADVANCE_ENABLED) return
+    if (advanceTimer) clearTimeout(advanceTimer)
+    // Debounced: only fires after the DOM has been quiet for 3s,
+    // giving async LLM fallbacks time to land.
+    advanceTimer = setTimeout(() => {
+      advanceTimer = null
+      tryAutoAdvance()
+    }, 3000)
+  }
 
   const observer = new MutationObserver(async (_) => {
     RegisterInputs(document)
@@ -39,11 +51,7 @@ const run = async () => {
         lastPage = currentPage
         setTimeout(() => expandRepeatingSections(), 500)
       }
-      if (AUTO_ADVANCE_ENABLED) {
-        // Debounced via internal advancing flag + last-clicked-header guard.
-        // Wait a moment for autofill to settle before evaluating.
-        setTimeout(() => tryAutoAdvance(), 2500)
-      }
+      scheduleAutoAdvance()
     }
   })
   observer.observe(document.body, {
@@ -56,6 +64,7 @@ const run = async () => {
   if (isWorkday(domain)) {
     lastPage = document.querySelector('h2')?.innerText || ''
     await expandRepeatingSections()
+    scheduleAutoAdvance()
   }
 }
 

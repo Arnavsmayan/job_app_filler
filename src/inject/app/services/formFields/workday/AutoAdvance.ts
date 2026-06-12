@@ -78,8 +78,7 @@ async function waitForHeaderChange(prev: string, timeoutMs: number): Promise<boo
 }
 
 async function pageHasUnfilledRequiredFields(): Promise<boolean> {
-  // Workday marks required-but-empty inputs with [aria-required="true"]
-  // and aria-invalid or a visible "required" error span. Short, conservative check.
+  // 1) input / textarea required-but-empty.
   const requireds = Array.from(
     document.querySelectorAll('[aria-required="true"]')
   ) as HTMLElement[]
@@ -89,7 +88,23 @@ async function pageHasUnfilledRequiredFields(): Promise<boolean> {
       const v = (el as HTMLInputElement).value
       if (!v) return true
     }
+    // Workday DropdownSearchable / Dropdown render as button[aria-required].
+    // Their currently-selected option text lives in the inner text — empty
+    // means unfilled.
+    if (tag === 'button') {
+      const txt = (el.innerText || '').trim().toLowerCase()
+      if (!txt || txt === 'select one' || txt === 'select') return true
+    }
   }
+
+  // 2) Visible Workday error markers.
+  const errorContainers = Array.from(
+    document.querySelectorAll(
+      '[data-automation-id="errorMessage"], [data-automation-id="formField-error"], .css-error'
+    )
+  ) as HTMLElement[]
+  if (errorContainers.some((el) => isVisible(el))) return true
+
   return false
 }
 
